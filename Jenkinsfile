@@ -22,7 +22,7 @@ pipeline {
 
         stage('Build & SonarQube Analysis') {
             steps {
-                withSonarQubeEnv('SonarQube-Server') {
+                withSonarQubeEnv('sonartest') {
                     sh 'chmod +x gradlew'
                     // 빌드와 분석을 먼저 수행합니다.
                     sh './gradlew clean build sonar'
