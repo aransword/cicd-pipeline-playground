@@ -3,7 +3,7 @@ pipeline {
     
     environment {
         // Docker Hub ID와 리포지토리 이름
-        DOCKERHUB_REPO = "your-dockerhub-id/your-repo-name"
+        DOCKERHUB_REPO = "aransword/test"
         DOCKERHUB_CREDENTIALS_ID = "DOCKERHUB_CREDENTIALS" // Jenkins에 등록한 ID (PAT 사용)
         IMAGE_TAG = "${env.BUILD_NUMBER}"
     }
