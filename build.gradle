@@ -16,7 +16,7 @@ jib {
 	}
 	to {
 		// 사설 저장소 주소와 이미지 이름
-		image = 'aransword.site:8404/cicd-pipeline-playground'
+		image = 'aransword/test'
 
 		tags = [buildNumber, 'latest'].unique()
 	}
