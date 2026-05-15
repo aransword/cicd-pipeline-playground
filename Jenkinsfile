@@ -2,9 +2,9 @@ pipeline {
     agent any
     
     environment {
-        // Docker Hub ID와 리포지토리 이름을 설정하세요
-        DOCKERHUB_REPO = "aransword/test"
-        DOCKERHUB_CREDENTIALS_ID = "DOCKERHUB_CREDENTIALS" // Jenkins에 등록한 ID
+        // Docker Hub ID와 리포지토리 이름
+        DOCKERHUB_REPO = "your-dockerhub-id/your-repo-name"
+        DOCKERHUB_CREDENTIALS_ID = "DOCKERHUB_CREDENTIALS" // Jenkins에 등록한 ID (PAT 사용)
         IMAGE_TAG = "${env.BUILD_NUMBER}"
     }
 
@@ -31,6 +31,7 @@ pipeline {
             steps {
                 withSonarQubeEnv('sonartest') {
                     sh 'chmod +x gradlew'
+                    // 빌드와 분석
                     sh './gradlew clean build sonar'
                 }
             }
@@ -44,31 +45,25 @@ pipeline {
             }
         }
 
-        // --- 추가된 부분 시작 ---
-        stage('Docker Build & Push') {
+        // --- Jib을 활용한 Build & Push ---
+        stage('Jib Build & Push to Docker Hub') {
             steps {
-                script {
-                    // Docker Hub 로그인 및 Push를 안전하게 처리하기 위해 withDockerRegistry 사용
-                    docker.withRegistry('', DOCKERHUB_CREDENTIALS_ID) {
-                        // 1. 이미지 빌드
-                        def customImage = docker.build("${DOCKERHUB_REPO}:${IMAGE_TAG}")
-                        
-                        // 2. 이미지 Push
-                        customImage.push()
-                        
-                        // (선택사항) latest 태그로도 push하고 싶다면
-                        customImage.push("latest")
-                    }
+                // Jenkins Credentials에 저장된 ID/PW(또는 PAT)를 환경변수로 꺼내옵니다.
+                withCredentials([usernamePassword(
+                    credentialsId: env.DOCKERHUB_CREDENTIALS_ID, 
+                    usernameVariable: 'DOCKER_USER', 
+                    passwordVariable: 'DOCKER_PASS'
+                )]) {
+                    // Gradle Jib task 실행 (파라미터로 계정 정보와 이미지 이름 전달)
+                    sh """
+                    ./gradlew jib \
+                        -Djib.to.image=docker.io/${DOCKERHUB_REPO}:${IMAGE_TAG} \
+                        -Djib.to.auth.username=${DOCKER_USER} \
+                        -Djib.to.auth.password=${DOCKER_PASS} \
+                        -Djib.to.tags=latest
+                    """
                 }
             }
-        }
-        // --- 추가된 부분 끝 ---
-    }
-    
-    post {
-        always {
-            // 빌드 완료 후 로컬에 남은 이미지 삭제 (디스크 용량 관리)
-            sh "docker rmi ${DOCKERHUB_REPO}:${IMAGE_TAG} || true"
         }
     }
 }
