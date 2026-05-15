@@ -55,13 +55,13 @@ pipeline {
                     passwordVariable: 'DOCKER_PASS'
                 )]) {
                     // Gradle Jib task 실행 (파라미터로 계정 정보와 이미지 이름 전달)
-                    sh """
+                    sh '''
                     ./gradlew jib \
-                        -Djib.to.image=docker.io/${DOCKERHUB_REPO}:${IMAGE_TAG} \
-                        -Djib.to.auth.username=${DOCKER_USER} \
-                        -Djib.to.auth.password=${DOCKER_PASS} \
+                        -Djib.to.image=docker.io/$DOCKERHUB_REPO:$IMAGE_TAG \
+                        -Djib.to.auth.username=$DOCKER_USER \
+                        -Djib.to.auth.password=$DOCKER_PASS \
                         -Djib.to.tags=latest
-                    """
+                    '''
                 }
             }
         }
